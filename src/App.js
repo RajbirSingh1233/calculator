@@ -1,83 +1,170 @@
-import React, { Component } from 'react';
-import './App.css';
-import Result from './components/Result';
-import KeyPad from "./components/KeyPad";
+import "./App.css";
+import { useState, useEffect } from "react";
+import NumberFormat from "react-number-format";
 
-class App extends Component {
-  constructor(){
-    super();
+function App() {
+  const [preState, setPreState] = useState("");
+  const [curState, setCurState] = useState("");
+  const [input, setInput] = useState("0");
+  const [operator, setOperator] = useState(null);
+  const [total, setTotal] = useState(false);
 
-    this.state = {
-      result: ""
-    }
-  }
+  const inputNum = (e) => {
+    if (curState.includes(".") && e.target.innerText === ".") return;
 
-  onClick = button => {
-
-    if(button === "="){
-        this.calculate()
+    if (total) {
+      setPreState("");
     }
 
-    else if(button === "C"){
-        this.reset()
+    curState
+      ? setCurState((pre) => pre + e.target.innerText)
+      : setCurState(e.target.innerText);
+    setTotal(false);
+  };
+
+  useEffect(() => {
+    setInput(curState);
+  }, [curState]);
+
+  useEffect(() => {
+    setInput("0");
+  }, []);
+  const operatorType = (e) => {
+    setTotal(false);
+    setOperator(e.target.innerText);
+    if (curState === "") return;
+    if (preState !== "") {
+      equals();
+    } else {
+      setPreState(curState);
+      setCurState("");
     }
-    else if(button === "CE"){
-        this.backspace()
+  };
+
+  const equals = (e) => {
+    if (e?.target.innerText === "=") {
+      setTotal(true);
     }
+    let cal;
+    switch (operator) {
+      case "/":
+        cal = String(parseFloat(preState) / parseFloat(curState));
+        break;
 
-    else {
-        this.setState({
-            result: this.state.result + button
-        })
+      case "+":
+        cal = String(parseFloat(preState) + parseFloat(curState));
+        break;
+      case "X":
+        cal = String(parseFloat(preState) * parseFloat(curState));
+        break;
+      case "-":
+        cal = String(parseFloat(preState) - parseFloat(curState));
+        break;
+      default:
+        return;
     }
-};
+    setInput("");
+    setPreState(cal);
+    setCurState("");
+  };
 
-
-calculate = () => {
-    var checkResult = ''
-    if(this.state.result.includes('--')){
-        checkResult = this.state.result.replace('--','+')
+  const minusPlus = () => {
+    if (curState.charAt(0) === "-") {
+      setCurState(curState.substring(1));
+    } else {
+      setCurState("-" + curState);
     }
+  };
 
-    else {
-        checkResult = this.state.result
-    }
+  const percent = () => {
+    preState
+      ? setCurState(String((parseFloat(curState) / 100) * preState))
+      : setCurState(String(parseFloat(curState) / 100));
+  };
 
-    try {
-        this.setState({
-            result: (eval(checkResult) || "" ) + ""
-        })
-    } catch (e) {
-        this.setState({
-            result: "error"
-        })
-
-    }
-};
-
-reset = () => {
-    this.setState({
-        result: ""
-    })
-};
-
-backspace = () => {
-    this.setState({
-        result: this.state.result.slice(0, -1)
-    })
-};
-
-  render() {
-    return (
-        <div>
-            <div className="calculator-body">
-                <h1 className="calci">Calculator</h1>
-                <Result result={this.state.result}/>
-                <KeyPad onClick={this.onClick}/>
-            </div>
+  const reset = () => {
+    setPreState("");
+    setCurState("");
+    setInput("0");
+  };
+  return (
+    <div className='container'>
+      <div className='wrapper'>
+        <div className='screen'>
+          {input !== "" || input === "0" ? (
+            <NumberFormat
+              value={input}
+              displayType={"text"}
+              thousandSeparator={true}
+            />
+          ) : (
+            <NumberFormat
+              value={preState}
+              displayType={"text"}
+              thousandSeparator={true}
+            />
+          )}
         </div>
-    );
-}
+        <div className='btn light-gray' onClick={reset}>
+          AC
+        </div>
+        <div className='btn light-gray' onClick={percent}>
+          %
+        </div>
+        <div className='btn light-gray' onClick={minusPlus}>
+          +/-
+        </div>
+        <div className='btn orange' onClick={operatorType}>
+          /
+        </div>
+        <div className='btn' onClick={inputNum}>
+          7
+        </div>
+        <div className='btn' onClick={inputNum}>
+          8
+        </div>
+        <div className='btn' onClick={inputNum}>
+          9
+        </div>
+        <div className='btn orange' onClick={operatorType}>
+          X
+        </div>
+        <div className='btn' onClick={inputNum}>
+          4
+        </div>
+        <div className='btn' onClick={inputNum}>
+          5
+        </div>
+        <div className='btn' onClick={inputNum}>
+          6
+        </div>
+        <div className='btn orange' onClick={operatorType}>
+          +
+        </div>
+        <div className='btn' onClick={inputNum}>
+          1
+        </div>
+        <div className='btn' onClick={inputNum}>
+          2
+        </div>
+        <div className='btn' onClick={inputNum}>
+          3
+        </div>
+        <div className='btn orange' onClick={operatorType}>
+          -
+        </div>
+        <div className='btn zero' onClick={inputNum}>
+          0
+        </div>
+        <div className='btn' onClick={inputNum}>
+          .
+        </div>
+        <div className='btn' onClick={equals}>
+          =
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default App;
